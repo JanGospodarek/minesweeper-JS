@@ -3,11 +3,13 @@ class Game {
   liczbaBomb;
   liczbaBombObok;
   kafel;
+  nick;
   wysokoscPlanszy;
   szerokoscPlanszy;
   allChecked;
   ableToMod;
   pozostaloBomb;
+  timerInterval;
   checkTimer;
   bombPosArr = [];
   arrPlansza = [];
@@ -17,27 +19,9 @@ class Game {
     this.createForm();
   }
   createForm() {
-    const formularz = document.createElement("form");
-    const input1 = document.createElement("input");
-    const input2 = document.createElement("input");
-    const input3 = document.createElement("input");
-    const button = document.createElement("button");
-    const p1 = document.createElement("p");
-    const p2 = document.createElement("p");
-    const p3 = document.createElement("p");
-    const czas = document.createElement("p");
-    const liczbaBomb = document.createElement("p");
-    czas.innerText = "Czas gry:  ";
-    czas.setAttribute("id", "czas");
-    p1.innerText = "Wysokość planszy: ";
-    p2.innerText = "Szerokość planszy: ";
-    p3.innerText = "Ilość bomb: ";
-    button.innerText = "Generuj";
-    button.id = "submit";
-    input1.id = "height";
-    input2.id = "width";
-    liczbaBomb.id = "liczbaBomb";
-    input3.id = "bombs";
+    const input1 = document.getElementById("height");
+    const input2 = document.getElementById("width");
+    const input3 = document.getElementById("bombs");
     input1.addEventListener("input", (e) => {
       this.handleOnChange(input1);
     });
@@ -48,30 +32,17 @@ class Game {
     input3.addEventListener("input", (e) => {
       this.handleOnChange(input3);
     });
-    button.setAttribute("type", "submit");
-    formularz.setAttribute("id", "form");
-    input1.setAttribute("type", "text");
-    input2.setAttribute("type", "text");
-    input3.setAttribute("type", "text");
-
-    p1.appendChild(input1);
-    p2.appendChild(input2);
-    p3.appendChild(input3);
-    formularz.appendChild(p1);
-    formularz.appendChild(p2);
-    formularz.appendChild(p3);
-    formularz.appendChild(button);
-    this.main.appendChild(formularz);
-    this.main.appendChild(czas);
-    this.main.appendChild(liczbaBomb);
 
     document
       .getElementById("submit")
       .addEventListener("click", (e) => this.handleForm(e));
   }
   startTimer() {
-    setInterval(() => {
-      this.timer += 1;
+    const date = new Date();
+    this.timerInterval = setInterval(() => {
+      let a = new Date();
+      let d = a - date;
+      this.timer = new Date(d).getSeconds();
       document.querySelector("#czas").innerText = " ";
       document.querySelector("#czas").innerText = `Czas gry: ${this.timer}`;
     }, 1000);
@@ -91,9 +62,12 @@ class Game {
     // this.szerokoscPlanszy = Number(document.getElementById("width").value);
 
     // this.liczbaBomb = Number(document.getElementById("bombs").value);
+    // this.nick = Number(document.getElementById("nick").value);
     this.wysokoscPlanszy = 10;
     this.szerokoscPlanszy = 10;
-    this.liczbaBomb = 10;
+    this.liczbaBomb = 3;
+    this.nick = "jan";
+    this.pozostaloBomb = this.liczbaBomb;
     this.startTimer();
 
     this.bombPositions();
@@ -123,18 +97,7 @@ class Game {
     this.renderBombNumber();
     this.render();
   }
-  renderBombNumber() {
-    let liczba = 0;
-    liczba = this.arrPlansza.reduce((acc, cur) => {
-      if (!cur.flag) return (acc += cur.bomb);
-      else return (acc += 0);
-    }, 0);
 
-    document.getElementById("liczbaBomb").innerText = " ";
-    document.getElementById(
-      "liczbaBomb"
-    ).innerText = `Pozostało bomb: ${liczba}`;
-  }
   bombPositions() {
     const randomPosGenerate = () => {
       const numerWiersza = Math.floor(Math.random() * this.wysokoscPlanszy);
@@ -258,11 +221,11 @@ class Game {
     let tab_cords = div_le.id.split("&");
     let x = parseInt(tab_cords[0]);
     let y = parseInt(tab_cords[1]);
-
+    const id = div_le.getAttribute("dataID").split("-")[1];
     div_le.classList.remove("NO");
     div_le.classList.add("YES");
-
-    let bexpieczne = [];
+    this.arrPlansza[id].checked = true;
+    let bezpieczne = [];
 
     for (let i = -1; i < 2; i++) {
       for (let j = -1; j < 2; j++) {
@@ -271,19 +234,19 @@ class Game {
         const curEl = document.getElementById(xi + "&" + yj);
 
         if (curEl !== null && curEl.classList.contains("NO")) {
-          bexpieczne.push({ xi: xi, yj: yj });
+          bezpieczne.push({ xi: xi, yj: yj });
         }
       }
     }
 
-    for (let i = 0; i < bexpieczne.length; i++) {
+    for (let i = 0; i < bezpieczne.length; i++) {
       let flag_FE = true;
 
       bombArr.forEach(function (object) {
         if (flag_FE) {
           if (
-            object.row * 20 == bexpieczne[i].xi &&
-            object.col * 20 == bexpieczne[i].yj
+            object.row * 20 == bezpieczne[i].xi &&
+            object.col * 20 == bezpieczne[i].yj
           ) {
             a++;
             flag_FE = false;
@@ -292,22 +255,32 @@ class Game {
       });
     }
 
-    for (let i = 0; i < bexpieczne.length; i++) {
+    for (let i = 0; i < bezpieczne.length; i++) {
       if (!checking(document.getElementById(x + "&" + y).id) && a == 0) {
         const thisBInder = this;
         thisBInder.nearBombs(
-          document.getElementById(bexpieczne[i].xi + "&" + bexpieczne[i].yj)
+          document.getElementById(bezpieczne[i].xi + "&" + bezpieczne[i].yj)
         );
       }
     }
 
     div_le.style.backgroundColor = "lightgrey";
     if (a != 0) div_le.innerText = a;
+    this.checkIsWin();
   }
 
-  // checkIfAllChecked() {
+  renderBombNumber() {
+    // let liczba = 0;
+    // liczba = this.arrPlansza.reduce((acc, cur) => {
+    //   if (!cur.flag) return (acc += cur.bomb);
+    //   else return (acc += 0);
+    // }, 0);
 
-  // }
+    document.getElementById("liczbaBomb").innerText = " ";
+    document.getElementById(
+      "liczbaBomb"
+    ).innerText = `Pozostało bomb: ${this.pozostaloBomb}`;
+  }
   handleKafelekClick(e) {
     // try {
     if (!e.target.classList.contains("kafelek")) return;
@@ -325,6 +298,7 @@ class Game {
     // } catch (error) {
     //   alert(error.message);
     // }
+    this.checkIsWin();
   }
   handleRMBClick(e) {
     e.preventDefault();
@@ -332,21 +306,94 @@ class Game {
     const kafelek = e.target.closest(".kafelek");
 
     const id = Number(kafelek.getAttribute("dataID").split("-")[1]);
+
+    if (this.arrPlansza[id].checked) return;
+    this.arrPlansza[id].flag = true;
     kafelek.style.backgroundColor = "green";
 
     let czyBomba = this.arrPlansza[id].bomb;
-    if (czyBomba) {
-      this.arrPlansza[id].flag = true;
+    if (czyBomba === 1) {
+      this.pozostaloBomb--;
       this.renderBombNumber();
     }
     console.log(id);
+    this.checkIsWin();
   }
   looseGame() {
-    alert("Przegrałeś!");
+    this.reset("Przegrałeś!");
+  }
+  checkIsWin() {
+    console.log(this.pozostaloBomb);
+    let win = false;
+    for (let index = 0; index < this.arrPlansza.length; index++) {
+      const el = this.arrPlansza[index];
+      if (el.checked && el.bomb === 0) win = true;
+      if (!el.checked && el.bomb === 0) {
+        win = false;
+        break;
+      }
+    }
+
+    if (win && this.pozostaloBomb === 0) {
+      this.reset("Wygrałeś!!!");
+    }
+  }
+  reset(msg) {
+    alert(msg);
+    clearInterval(this.timerInterval);
     setTimeout(() => {
-      location.reload();
+      this.plansza.remove();
     }, 1000);
   }
 }
 
-const game = new Game();
+function displayForm() {
+  const formularz = document.createElement("form");
+  const main = document.getElementById("main");
+  const input1 = document.createElement("input");
+  const input2 = document.createElement("input");
+  const input3 = document.createElement("input");
+  const nick = document.createElement("input");
+  const button = document.createElement("button");
+  const p1 = document.createElement("p");
+  const p2 = document.createElement("p");
+  const p3 = document.createElement("p");
+  const pN = document.createElement("p");
+  const czas = document.createElement("p");
+  const liczbaBomb = document.createElement("p");
+  czas.innerText = "Czas gry:  ";
+  czas.setAttribute("id", "czas");
+  pN.innerText = "Twój nick: ";
+
+  p1.innerText = "Wysokość planszy: ";
+  p2.innerText = "Szerokość planszy: ";
+  p3.innerText = "Ilość bomb: ";
+  button.innerText = "Generuj";
+  button.id = "submit";
+  input1.id = "height";
+  input2.id = "width";
+  liczbaBomb.id = "liczbaBomb";
+  input3.id = "bombs";
+
+  button.setAttribute("type", "submit");
+  formularz.setAttribute("id", "form");
+  input1.setAttribute("type", "text");
+  input2.setAttribute("type", "text");
+  input3.setAttribute("type", "text");
+
+  p1.appendChild(input1);
+  p2.appendChild(input2);
+  p3.appendChild(input3);
+  pN.appendChild(nick);
+  formularz.appendChild(pN);
+
+  formularz.appendChild(p1);
+  formularz.appendChild(p2);
+  formularz.appendChild(p3);
+  formularz.appendChild(button);
+  main.appendChild(formularz);
+  main.appendChild(czas);
+  main.appendChild(liczbaBomb);
+  const game = new Game();
+}
+displayForm();
