@@ -11,6 +11,8 @@ class Game {
   pozostaloBomb;
   timerInterval;
   checkTimer;
+  rekordBoard;
+  rekordy = [];
   bombPosArr = [];
   arrPlansza = [];
   timer = 0;
@@ -62,15 +64,22 @@ class Game {
     // this.szerokoscPlanszy = Number(document.getElementById("width").value);
 
     // this.liczbaBomb = Number(document.getElementById("bombs").value);
-    // this.nick = Number(document.getElementById("nick").value);
+    // this.nick = document.getElementById("nick").value;
     this.wysokoscPlanszy = 10;
     this.szerokoscPlanszy = 10;
     this.liczbaBomb = 3;
     this.nick = "jan";
     this.pozostaloBomb = this.liczbaBomb;
     this.startTimer();
-
+    this.getCookies();
     this.bombPositions();
+  }
+  getCookies() {
+    const fresh = document.cookie;
+    if (!fresh) return;
+    const cookies = JSON.parse(document.cookie.split("=")[1]);
+    console.log(cookies);
+    this.rekordy = cookies;
   }
   createArr() {
     for (let index = 0; index < this.wysokoscPlanszy; index++) {
@@ -96,6 +105,7 @@ class Game {
     }
     this.renderBombNumber();
     this.render();
+    this.renderRekordy();
   }
 
   bombPositions() {
@@ -145,6 +155,13 @@ class Game {
         i++;
       }
     }
+    this.rekordBoard = document.createElement("div");
+    const boardH = document.createElement("div");
+    boardH.classList.add("boardH");
+    boardH.innerText = "Tabela wyników";
+    this.rekordBoard.appendChild(boardH);
+    this.rekordBoard.classList.add("board");
+    this.main.appendChild(this.rekordBoard);
     this.main.appendChild(this.plansza);
     document
       .querySelector(".plansza")
@@ -153,55 +170,32 @@ class Game {
       .querySelector(".plansza")
       .addEventListener("contextmenu", (e) => this.handleRMBClick(e), false);
   }
+  renderRekordy() {
+    this.rekordy.forEach((rekord, i) => {
+      const div1 = document.createElement("div");
+      const div2 = document.createElement("div");
+      const div3 = document.createElement("div");
+      div1.empty;
+      div1.classList.add("boardItem");
+      div2.classList.add("boardItem");
+      div3.classList.add("boardItem");
+      div1.style.gridColumn = 1;
+      div2.style.gridColumn = 2;
+      div3.style.gridColumn = 3;
+      div1.style.gridRow = i + 2;
+      div2.style.gridRow = i + 2;
+      div3.style.gridRow = i + 2;
+      div1.innerText = rekord.name;
+      div2.innerText = rekord.time;
+      const wymiary = `${rekord.wysokoscPlanszy}X${rekord.szerokoscPlanszy}`;
+      div3.innerText = wymiary;
+      this.rekordBoard.appendChild(div1);
+      this.rekordBoard.appendChild(div2);
+      this.rekordBoard.appendChild(div3);
+    });
+  }
 
   nearBombs(div_le) {
-    // this.liczbaBombObok = 0;
-    // let puste = [];
-    // this.allChecked = false;
-
-    // const index = this.arrPlansza.findIndex(
-    //   (el) => el.row === wiersz && el.col === kolumna
-    // );
-    // this.kafel = document.getElementById(`k-${index}`);
-
-    // for (let i = -1; i < 2; i++) {
-    //   for (let j = -1; j < 2; j++) {
-    //     let element = this.arrPlansza.find(
-    //       (el) => el.row === wiersz + i && el.col === kolumna + j
-    //     );
-    //     // const indexEl = this.arrPlansza.findIndex(
-    //     //   (el) => el.row === wiersz + i && el.col === kolumna + j
-    //     // );
-    //     if (element && !element.checked) {
-    //       if (element.bomb === 1) {
-    //         this.liczbaBombObok++;
-    //       }
-
-    //       if (element.bomb === 0) puste.push(element);
-    //     }
-    //     if (i == 1 && j == 1) {
-    //       this.allChecked = true;
-    //     }
-    //   }
-    // }
-    // // this.checkIfAllChecked();
-    // let i = 0;
-    // while (i < puste.length) {
-    //   if (this.liczbaBombObok === 0) {
-    //     this.kafel.style.backgroundColor = "darkgrey";
-    //     console.log(puste);
-    //     this.nearBombs(puste[i].row, puste[i].col);
-    //   } else {
-    //     this.kafel.innerText = this.liczbaBombObok;
-    //   }
-    //   i++;
-    // }
-
-    // if (div_le.style.backgroundImage == 'url("img/flaga.PNG")') {
-    //   bombs_left++;
-    //   document.getElementById("p_BL").innerText =
-    //     "Bombs to defuse left: " + bombs_left + ".";
-    // }
     //REFACTOR THIS!!!!!
     const bombArr = this.arrPlansza.filter((el) => el.bomb === 1);
 
@@ -270,19 +264,12 @@ class Game {
   }
 
   renderBombNumber() {
-    // let liczba = 0;
-    // liczba = this.arrPlansza.reduce((acc, cur) => {
-    //   if (!cur.flag) return (acc += cur.bomb);
-    //   else return (acc += 0);
-    // }, 0);
-
     document.getElementById("liczbaBomb").innerText = " ";
     document.getElementById(
       "liczbaBomb"
     ).innerText = `Pozostało bomb: ${this.pozostaloBomb}`;
   }
   handleKafelekClick(e) {
-    // try {
     if (!e.target.classList.contains("kafelek")) return;
     const kafelek = e.target.closest(".kafelek");
 
@@ -295,9 +282,7 @@ class Game {
     }
 
     this.nearBombs(kafelek);
-    // } catch (error) {
-    //   alert(error.message);
-    // }
+
     this.checkIsWin();
   }
   handleRMBClick(e) {
@@ -335,8 +320,22 @@ class Game {
     }
 
     if (win && this.pozostaloBomb === 0) {
+      this.pushToRekordy();
+      this.renderRekordy();
+      console.log(this.rekordy);
       this.reset("Wygrałeś!!!");
     }
+  }
+  pushToRekordy() {
+    const obj = {
+      name: this.nick,
+      time: this.timer,
+      szerokoscPlanszy: this.szerokoscPlanszy,
+      wysokoscPlanszy: this.wysokoscPlanszy,
+    };
+    this.rekordy.push(obj);
+    const json_str = JSON.stringify(this.rekordy);
+    this.createCookie("rekordy", json_str, 2);
   }
   reset(msg) {
     alert(msg);
@@ -344,6 +343,12 @@ class Game {
     setTimeout(() => {
       this.plansza.remove();
     }, 1000);
+  }
+  createCookie(name, value, hours) {
+    const date = new Date();
+    date.setTime(date.getTime() + Number(hours) * 3600 * 1000);
+    document.cookie =
+      name + "=" + value + "; path=/;expires = " + date.toGMTString();
   }
 }
 
@@ -372,6 +377,7 @@ function displayForm() {
   button.id = "submit";
   input1.id = "height";
   input2.id = "width";
+  nick.id = "nick";
   liczbaBomb.id = "liczbaBomb";
   input3.id = "bombs";
 
@@ -397,3 +403,51 @@ function displayForm() {
   const game = new Game();
 }
 displayForm();
+
+// this.liczbaBombObok = 0;
+// let puste = [];
+// this.allChecked = false;
+
+// const index = this.arrPlansza.findIndex(
+//   (el) => el.row === wiersz && el.col === kolumna
+// );
+// this.kafel = document.getElementById(`k-${index}`);
+
+// for (let i = -1; i < 2; i++) {
+//   for (let j = -1; j < 2; j++) {
+//     let element = this.arrPlansza.find(
+//       (el) => el.row === wiersz + i && el.col === kolumna + j
+//     );
+//     // const indexEl = this.arrPlansza.findIndex(
+//     //   (el) => el.row === wiersz + i && el.col === kolumna + j
+//     // );
+//     if (element && !element.checked) {
+//       if (element.bomb === 1) {
+//         this.liczbaBombObok++;
+//       }
+
+//       if (element.bomb === 0) puste.push(element);
+//     }
+//     if (i == 1 && j == 1) {
+//       this.allChecked = true;
+//     }
+//   }
+// }
+// // this.checkIfAllChecked();
+// let i = 0;
+// while (i < puste.length) {
+//   if (this.liczbaBombObok === 0) {
+//     this.kafel.style.backgroundColor = "darkgrey";
+//     console.log(puste);
+//     this.nearBombs(puste[i].row, puste[i].col);
+//   } else {
+//     this.kafel.innerText = this.liczbaBombObok;
+//   }
+//   i++;
+// }
+
+// if (div_le.style.backgroundImage == 'url("img/flaga.PNG")') {
+//   bombs_left++;
+//   document.getElementById("p_BL").innerText =
+//     "Bombs to defuse left: " + bombs_left + ".";
+// }

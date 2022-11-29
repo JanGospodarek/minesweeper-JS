@@ -10,7 +10,6 @@
         position: relative;
         top: 100px;
         left: 100px;
-        border: 1px solid black;
       }
       .kafelek {
         position: absolute;
@@ -20,6 +19,30 @@
         /* border: 2px white solid; */
         background-color: grey;
         margin: 2px;
+      }
+      .board {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 200px;
+        height: auto;
+        background-color: lightgray;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-auto-rows: auto;
+        gap: 5px;
+      }
+      .boardH {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        grid-column: 1/-1;
+        grid-row: 1;
+      }
+      .boardItem {
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
     </style>
   </head>
