@@ -4,6 +4,7 @@ class Game {
   liczbaBombObok;
   kafel;
   nick;
+  start = false;
   wysokoscPlanszy;
   szerokoscPlanszy;
   allChecked;
@@ -11,6 +12,8 @@ class Game {
   pozostaloBomb;
   timerInterval;
   checkTimer;
+  terazFlaga = 1;
+  lastClicked;
   rekordBoard;
   rekordy = [];
   bombPosArr = [];
@@ -34,7 +37,6 @@ class Game {
     input3.addEventListener("input", (e) => {
       this.handleOnChange(input3);
     });
-
     document
       .getElementById("submit")
       .addEventListener("click", (e) => this.handleForm(e));
@@ -60,18 +62,28 @@ class Game {
   handleForm(e) {
     e.preventDefault();
 
-    // this.wysokoscPlanszy = Number(document.getElementById("height").value);
-    // this.szerokoscPlanszy = Number(document.getElementById("width").value);
+    if (!this.start) {
+      this.wysokoscPlanszy = Number(document.getElementById("height").value);
+      this.szerokoscPlanszy = Number(document.getElementById("width").value);
 
-    // this.liczbaBomb = Number(document.getElementById("bombs").value);
-    // this.nick = document.getElementById("nick").value;
-    this.wysokoscPlanszy = 10;
-    this.szerokoscPlanszy = 10;
-    this.liczbaBomb = 5;
-    this.pozostaloBomb = this.liczbaBomb;
-    this.startTimer();
-    this.getCookies();
-    this.bombPositions();
+      this.liczbaBomb = Number(document.getElementById("bombs").value);
+      // this.wysokoscPlanszy = 10;
+      // this.szerokoscPlanszy = 10;
+      // this.liczbaBomb = 5;
+      console.log(this.wysokoscPlanszy);
+      if (
+        this.wysokoscPlanszy === 0 ||
+        this.szerokoscPlanszy === 0 ||
+        this.liczbaBomb === 0
+      ) {
+        location.reload();
+      }
+      this.pozostaloBomb = this.liczbaBomb;
+      this.startTimer();
+      this.getCookies();
+      this.bombPositions();
+      this.start = true;
+    }
   }
   getCookies() {
     const fresh = document.cookie;
@@ -145,6 +157,8 @@ class Game {
         kafelek.setAttribute("dataID", `k-${i}`);
         kafelek.classList.add("NO");
         kafelek.classList.add("kafelek");
+        kafelek.style.backgroundImage = "url(./img/klepa.PNG)";
+
         kafelek.style.top = `${index * 20}px`;
         kafelek.style.left = `${l * 20}px`;
         // if (this.arrPlansza[i].bomb === 1) {
@@ -256,8 +270,8 @@ class Game {
         );
       }
     }
-
-    div_le.style.backgroundImage = "url(./img/klepa.PNG)";
+    div_le.style.backgroundImage = null;
+    div_le.style.backgroundColor = "lightgray";
     if (a != 0) div_le.innerText = a;
     this.checkIsWin();
   }
@@ -287,21 +301,29 @@ class Game {
   handleRMBClick(e) {
     e.preventDefault();
     if (!e.target.classList.contains("kafelek")) return;
+
+    this.terazFlaga = 1;
+
     const kafelek = e.target.closest(".kafelek");
+    if (this.lastClicked === kafelek) this.terazFlaga = 0;
+    else this.terazFlaga = 1;
+    this.lastClicked = kafelek;
 
     const id = Number(kafelek.getAttribute("dataID").split("-")[1]);
-
-    if (this.arrPlansza[id].checked) return;
-    this.arrPlansza[id].flag = true;
-
-    kafelek.style.removeProperty("background-image");
-    kafelek.style.backgroundImage = "url(./img/flaga.PNG)";
-
     let czyBomba = this.arrPlansza[id].bomb;
-    if (czyBomba === 1) {
+
+    if (czyBomba === 1 && !this.arrPlansza[id].flag) {
       this.pozostaloBomb--;
       this.renderBombNumber();
     }
+    if (this.arrPlansza[id].checked) return;
+    this.arrPlansza[id].flag = true;
+    this.terazFlaga === 1
+      ? (kafelek.style.backgroundImage = "url(./img/flaga.PNG)")
+      : (kafelek.style.backgroundImage = "url(./img/pyt.PNG)");
+    // kafelek.style.removeProperty("background-image");
+    // this.terazFlaga === 1 ? (this.terazFlaga = 0) : (this.terazFlaga = 1);
+
     console.log(id);
     this.checkIsWin();
   }
@@ -401,49 +423,66 @@ class Game {
 function displayForm() {
   const formularz = document.createElement("form");
   const main = document.getElementById("main");
-  const input1 = document.createElement("input");
-  const input2 = document.createElement("input");
-  const input3 = document.createElement("input");
-  const button = document.createElement("button");
-  const p1 = document.createElement("p");
-  const p2 = document.createElement("p");
-  const p3 = document.createElement("p");
+  const p1 = createEl(
+    "p",
+    "Wysokość planszy",
+    null,
+    null,
+    null,
+    formularz,
+    true
+  );
+  const p2 = createEl(
+    "p",
+    "Szerokość planszy",
+    null,
+    null,
+    null,
+    formularz,
+    true
+  );
+  const p3 = createEl(
+    "p",
+    "Liczba bomb",
+    null,
+    null,
+    null,
+    null,
+    formularz,
+    true
+  );
+
+  createEl("input", null, "height", "type", "text", p1, false);
+  createEl("input", null, "width", "type", "text", p2, false);
+  createEl("input", null, "bombs", "type", "text", p3, false);
+  createEl("button", "Submit", "submit", "type", "submit", formularz, false);
+
   const czas = document.createElement("p");
   const liczbaBomb = document.createElement("p");
   czas.innerText = "Czas gry:  ";
-  czas.setAttribute("id", "czas");
-
-  p1.innerText = "Wysokość planszy: ";
-  p2.innerText = "Szerokość planszy: ";
-  p3.innerText = "Ilość bomb: ";
-  button.innerText = "Generuj";
-  button.id = "submit";
-  input1.id = "height";
-  input2.id = "width";
   liczbaBomb.id = "liczbaBomb";
-  input3.id = "bombs";
-
-  button.setAttribute("type", "submit");
+  czas.setAttribute("id", "czas");
   formularz.setAttribute("id", "form");
-  input1.setAttribute("type", "text");
-  input2.setAttribute("type", "text");
-  input3.setAttribute("type", "text");
-
-  p1.appendChild(input1);
-  p2.appendChild(input2);
-  p3.appendChild(input3);
 
   formularz.appendChild(p1);
   formularz.appendChild(p2);
   formularz.appendChild(p3);
-  formularz.appendChild(button);
+  console.log(main);
   main.appendChild(formularz);
   main.appendChild(czas);
   main.appendChild(liczbaBomb);
   const game = new Game();
 }
 displayForm();
-
+function createEl(name, inner, id, attr, attrVal, appendTo, returnEl) {
+  const element = document.createElement(name);
+  if (inner !== null) element.innerText = inner;
+  if (id !== null) element.id = id;
+  if (attr !== null && attr !== null) element.setAttribute(attr, attrVal);
+  console.log(appendTo);
+  if (appendTo !== null) appendTo.appendChild(element);
+  if (returnEl) return element;
+}
 // this.liczbaBombObok = 0;
 // let puste = [];
 // this.allChecked = false;
