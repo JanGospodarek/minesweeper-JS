@@ -67,8 +67,7 @@ class Game {
     // this.nick = document.getElementById("nick").value;
     this.wysokoscPlanszy = 10;
     this.szerokoscPlanszy = 10;
-    this.liczbaBomb = 3;
-    this.nick = "jan";
+    this.liczbaBomb = 1;
     this.pozostaloBomb = this.liczbaBomb;
     this.startTimer();
     this.getCookies();
@@ -258,7 +257,7 @@ class Game {
       }
     }
 
-    div_le.style.backgroundColor = "lightgrey";
+    div_le.style.backgroundImage = "url(./img/klepa.PNG)";
     if (a != 0) div_le.innerText = a;
     this.checkIsWin();
   }
@@ -294,7 +293,9 @@ class Game {
 
     if (this.arrPlansza[id].checked) return;
     this.arrPlansza[id].flag = true;
-    kafelek.style.backgroundColor = "green";
+
+    kafelek.style.removeProperty("background-image");
+    kafelek.style.backgroundImage = "url(./img/flaga.PNG)";
 
     let czyBomba = this.arrPlansza[id].bomb;
     if (czyBomba === 1) {
@@ -305,10 +306,28 @@ class Game {
     this.checkIsWin();
   }
   looseGame() {
-    this.reset("Przegrałeś!");
+    const bombsArr = [];
+    document.querySelectorAll(".kafelek").forEach((el) => {
+      const id = el.id.split("&");
+      const x = Number(id[0]) / 20;
+      const y = Number(id[1]) / 20;
+      const index = this.arrPlansza.findIndex(
+        (el) => el.row == x && el.col == y && el.bomb == 1
+      );
+      if (this.arrPlansza[index])
+        bombsArr.push(
+          `${this.arrPlansza[index].row * 20}&${
+            this.arrPlansza[index].col * 20
+          }`
+        );
+    });
+    console.log(bombsArr);
+    bombsArr.forEach((bomb) => {
+      document.getElementById(bomb).style.backgroundColor = "black";
+    });
+    // this.reset("Przegrałeś!");
   }
   checkIsWin() {
-    console.log(this.pozostaloBomb);
     let win = false;
     for (let index = 0; index < this.arrPlansza.length; index++) {
       const el = this.arrPlansza[index];
@@ -320,11 +339,37 @@ class Game {
     }
 
     if (win && this.pozostaloBomb === 0) {
+      this.renderNick();
+
+      // this.reset("Wygrałeś!!!");
+    }
+  }
+  renderNick() {
+    const formularz = document.createElement("form");
+    const nick = document.createElement("input");
+    const p = document.createElement("p");
+    p.innerText = "Wygrałeś!!!";
+    const pN = document.createElement("p");
+    pN.innerText = "Twój nick: ";
+    pN.appendChild(nick);
+    nick.id = "nick";
+    const button = document.createElement("button");
+    button.id = "submit";
+    button.innerText = "Submit";
+    button.setAttribute("type", "submit");
+    formularz.appendChild(pN);
+    formularz.id = "nickForm";
+    formularz.appendChild(button);
+    formularz.append(p);
+    this.main.appendChild(formularz);
+    formularz.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = nick.value;
+      this.nick = name;
       this.pushToRekordy();
       this.renderRekordy();
-      console.log(this.rekordy);
-      this.reset("Wygrałeś!!!");
-    }
+      this.reset("Wygrałeś!!");
+    });
   }
   pushToRekordy() {
     const obj = {
@@ -342,7 +387,7 @@ class Game {
     clearInterval(this.timerInterval);
     setTimeout(() => {
       this.plansza.remove();
-    }, 1000);
+    }, 3000);
   }
   createCookie(name, value, hours) {
     const date = new Date();
@@ -358,17 +403,14 @@ function displayForm() {
   const input1 = document.createElement("input");
   const input2 = document.createElement("input");
   const input3 = document.createElement("input");
-  const nick = document.createElement("input");
   const button = document.createElement("button");
   const p1 = document.createElement("p");
   const p2 = document.createElement("p");
   const p3 = document.createElement("p");
-  const pN = document.createElement("p");
   const czas = document.createElement("p");
   const liczbaBomb = document.createElement("p");
   czas.innerText = "Czas gry:  ";
   czas.setAttribute("id", "czas");
-  pN.innerText = "Twój nick: ";
 
   p1.innerText = "Wysokość planszy: ";
   p2.innerText = "Szerokość planszy: ";
@@ -377,7 +419,6 @@ function displayForm() {
   button.id = "submit";
   input1.id = "height";
   input2.id = "width";
-  nick.id = "nick";
   liczbaBomb.id = "liczbaBomb";
   input3.id = "bombs";
 
@@ -390,8 +431,6 @@ function displayForm() {
   p1.appendChild(input1);
   p2.appendChild(input2);
   p3.appendChild(input3);
-  pN.appendChild(nick);
-  formularz.appendChild(pN);
 
   formularz.appendChild(p1);
   formularz.appendChild(p2);
