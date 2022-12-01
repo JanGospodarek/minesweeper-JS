@@ -67,7 +67,7 @@ class Game {
     // this.nick = document.getElementById("nick").value;
     this.wysokoscPlanszy = 10;
     this.szerokoscPlanszy = 10;
-    this.liczbaBomb = 1;
+    this.liczbaBomb = 5;
     this.pozostaloBomb = this.liczbaBomb;
     this.startTimer();
     this.getCookies();
@@ -147,9 +147,9 @@ class Game {
         kafelek.classList.add("kafelek");
         kafelek.style.top = `${index * 20}px`;
         kafelek.style.left = `${l * 20}px`;
-        if (this.arrPlansza[i].bomb === 1) {
-          kafelek.style.backgroundColor = "red";
-        }
+        // if (this.arrPlansza[i].bomb === 1) {
+        //   kafelek.style.backgroundColor = "red";
+        // }
         this.plansza.appendChild(kafelek);
         i++;
       }
@@ -323,9 +323,10 @@ class Game {
     });
     console.log(bombsArr);
     bombsArr.forEach((bomb) => {
-      document.getElementById(bomb).style.backgroundColor = "black";
+      document.getElementById(bomb).style.backgroundImage =
+        "url(./img/bomb.PNG)";
     });
-    // this.reset("Przegrałeś!");
+    this.reset("Przegrałeś!");
   }
   checkIsWin() {
     let win = false;
