@@ -1,5 +1,7 @@
 class Game {
   main = document.getElementById("main");
+  div = document.createElement("div");
+  appended = false;
   liczbaBomb;
   liczbaBombObok;
   kafel;
@@ -63,13 +65,13 @@ class Game {
     e.preventDefault();
 
     if (!this.start) {
-      this.wysokoscPlanszy = Number(document.getElementById("height").value);
-      this.szerokoscPlanszy = Number(document.getElementById("width").value);
+      // this.wysokoscPlanszy = Number(document.getElementById("height").value);
+      // this.szerokoscPlanszy = Number(document.getElementById("width").value);
 
-      this.liczbaBomb = Number(document.getElementById("bombs").value);
-      // this.wysokoscPlanszy = 10;
-      // this.szerokoscPlanszy = 10;
-      // this.liczbaBomb = 5;
+      // this.liczbaBomb = Number(document.getElementById("bombs").value);
+      this.wysokoscPlanszy = 10;
+      this.szerokoscPlanszy = 11;
+      this.liczbaBomb = 1;
       console.log(this.wysokoscPlanszy);
       if (
         this.wysokoscPlanszy === 0 ||
@@ -153,7 +155,7 @@ class Game {
     for (let index = 0; index < this.wysokoscPlanszy; index++) {
       for (let l = 0; l < this.szerokoscPlanszy; l++) {
         let kafelek = document.createElement("div");
-        kafelek.id = `${index * 20}&${l * 20}`;
+        kafelek.id = `${index * 20}X${l * 20}`;
         kafelek.setAttribute("dataID", `k-${i}`);
         kafelek.classList.add("NO");
         kafelek.classList.add("kafelek");
@@ -161,20 +163,12 @@ class Game {
 
         kafelek.style.top = `${index * 20}px`;
         kafelek.style.left = `${l * 20}px`;
-        // if (this.arrPlansza[i].bomb === 1) {
-        //   kafelek.style.backgroundColor = "red";
-        // }
+
         this.plansza.appendChild(kafelek);
         i++;
       }
     }
-    this.rekordBoard = document.createElement("div");
-    const boardH = document.createElement("div");
-    boardH.classList.add("boardH");
-    boardH.innerText = "Tabela wyników";
-    this.rekordBoard.appendChild(boardH);
-    this.rekordBoard.classList.add("board");
-    this.main.appendChild(this.rekordBoard);
+
     this.main.appendChild(this.plansza);
     document
       .querySelector(".plansza")
@@ -184,7 +178,55 @@ class Game {
       .addEventListener("contextmenu", (e) => this.handleRMBClick(e), false);
   }
   renderRekordy() {
-    this.rekordy.forEach((rekord, i) => {
+    this.rekordBoard = document.createElement("div");
+
+    const boardH = document.createElement("div");
+    const boardFilter = document.createElement("div");
+    const select = document.createElement("select");
+
+    boardH.classList.add("boardH");
+    boardFilter.classList.add("boardFilter");
+    boardH.innerText = "Tabela wyników";
+    select.id = "filter";
+    this.rekordBoard.classList.add("board");
+
+    boardFilter.appendChild(select);
+    this.main.appendChild(this.rekordBoard);
+    this.rekordBoard.appendChild(boardFilter);
+    this.rekordBoard.appendChild(boardH);
+
+    const vals = [];
+    this.rekordy.forEach((rekord) =>
+      vals.push(`${rekord.wysokoscPlanszy}X${rekord.szerokoscPlanszy}`)
+    );
+
+    new Set(vals).forEach((rekord) => {
+      const opt = document.createElement("option");
+      opt.setAttribute("value", rekord);
+      opt.innerText = rekord;
+      opt.classList.add("opt");
+      select.appendChild(opt);
+    });
+    let filtered = [];
+
+    select.addEventListener("change", (e) => {
+      filtered = this.rekordy.filter(
+        (rekord) =>
+          e.target.value ==
+          `${rekord.wysokoscPlanszy}X${rekord.szerokoscPlanszy}`
+      );
+      console.log(filtered);
+      this.div.innerHTML = "";
+      this.renderTabOfRekords(filtered);
+    });
+    this.div.innerHTML = "";
+
+    this.renderTabOfRekords(this.rekordy);
+  }
+  renderTabOfRekords(arr) {
+    this.div.classList.add("essa");
+    this.rekordBoard.appendChild(this.div);
+    arr.forEach((rekord, i) => {
       const div1 = document.createElement("div");
       const div2 = document.createElement("div");
       const div3 = document.createElement("div");
@@ -202,77 +244,76 @@ class Game {
       div2.innerText = rekord.time;
       const wymiary = `${rekord.wysokoscPlanszy}X${rekord.szerokoscPlanszy}`;
       div3.innerText = wymiary;
-      this.rekordBoard.appendChild(div1);
-      this.rekordBoard.appendChild(div2);
-      this.rekordBoard.appendChild(div3);
+      this.div.appendChild(div1);
+      this.div.appendChild(div2);
+      this.div.appendChild(div3);
     });
   }
-
-  nearBombs(div_le) {
-    //REFACTOR THIS!!!!!
+  nearBombs(kafel) {
     const bombArr = this.arrPlansza.filter((el) => el.bomb === 1);
 
-    let checking = function (idElToCheck) {
+    function checking(ID) {
       for (let i = 0; i < bombArr.length; i++) {
-        let id = bombArr[i].row * 20 + "&" + bombArr[i].col * 20;
-
-        if (id == document.getElementById(idElToCheck).id) {
+        if (
+          `${bombArr[i].row * 20}X${bombArr[i].col * 20}` ==
+          document.getElementById(ID).id
+        ) {
           return true;
         }
       }
       return false;
-    };
+    }
 
     let a = 0;
 
-    let tab_cords = div_le.id.split("&");
-    let x = parseInt(tab_cords[0]);
-    let y = parseInt(tab_cords[1]);
-    const id = div_le.getAttribute("dataID").split("-")[1];
-    div_le.classList.remove("NO");
-    div_le.classList.add("YES");
+    const tab_cords = kafel.id.split("X");
+    const x = parseInt(tab_cords[0]);
+    const y = parseInt(tab_cords[1]);
+    const id = kafel.getAttribute("dataID").split("-")[1];
+    kafel.classList.remove("NO");
+    kafel.classList.add("YES");
     this.arrPlansza[id].checked = true;
-    let bezpieczne = [];
+    const bezpieczne = [];
 
     for (let i = -1; i < 2; i++) {
       for (let j = -1; j < 2; j++) {
-        let xi = x + i * 20;
-        let yj = y + j * 20;
-        const curEl = document.getElementById(xi + "&" + yj);
+        const row = x + i * 20;
+        const col = y + j * 20;
+        const curEl = document.getElementById(`${row}X${col}`);
 
         if (curEl !== null && curEl.classList.contains("NO")) {
-          bezpieczne.push({ xi: xi, yj: yj });
+          bezpieczne.push({ row: row, col: col });
         }
       }
     }
 
     for (let i = 0; i < bezpieczne.length; i++) {
-      let flag_FE = true;
+      let hasFlag = true;
 
       bombArr.forEach(function (object) {
-        if (flag_FE) {
+        if (hasFlag) {
           if (
-            object.row * 20 == bezpieczne[i].xi &&
-            object.col * 20 == bezpieczne[i].yj
+            object.row * 20 == bezpieczne[i].row &&
+            object.col * 20 == bezpieczne[i].col
           ) {
             a++;
-            flag_FE = false;
+            hasFlag = false;
           }
         }
       });
     }
 
     for (let i = 0; i < bezpieczne.length; i++) {
-      if (!checking(document.getElementById(x + "&" + y).id) && a == 0) {
+      if (!checking(document.getElementById(`${x}X${y}`).id) && a == 0) {
         const thisBInder = this;
         thisBInder.nearBombs(
-          document.getElementById(bezpieczne[i].xi + "&" + bezpieczne[i].yj)
+          document.getElementById(`${bezpieczne[i].row}X${bezpieczne[i].col}`)
         );
       }
     }
-    div_le.style.backgroundImage = null;
-    div_le.style.backgroundColor = "lightgray";
-    if (a != 0) div_le.innerText = a;
+    kafel.style.backgroundImage = null;
+    kafel.style.backgroundColor = "lightgray";
+    if (a != 0) kafel.innerText = a;
     this.checkIsWin();
   }
 
@@ -283,6 +324,7 @@ class Game {
     ).innerText = `Pozostało bomb: ${this.pozostaloBomb}`;
   }
   handleKafelekClick(e) {
+    if (!this.start) return;
     if (!e.target.classList.contains("kafelek")) return;
     const kafelek = e.target.closest(".kafelek");
 
@@ -295,11 +337,12 @@ class Game {
     }
 
     this.nearBombs(kafelek);
-
-    this.checkIsWin();
+    if (this.start) this.checkIsWin();
   }
   handleRMBClick(e) {
     e.preventDefault();
+    if (!this.start) return;
+
     if (!e.target.classList.contains("kafelek")) return;
 
     this.terazFlaga = 1;
@@ -321,16 +364,13 @@ class Game {
     this.terazFlaga === 1
       ? (kafelek.style.backgroundImage = "url(./img/flaga.PNG)")
       : (kafelek.style.backgroundImage = "url(./img/pyt.PNG)");
-    // kafelek.style.removeProperty("background-image");
-    // this.terazFlaga === 1 ? (this.terazFlaga = 0) : (this.terazFlaga = 1);
 
-    console.log(id);
-    this.checkIsWin();
+    if (this.start) this.checkIsWin();
   }
   looseGame() {
     const bombsArr = [];
     document.querySelectorAll(".kafelek").forEach((el) => {
-      const id = el.id.split("&");
+      const id = el.id.split("X");
       const x = Number(id[0]) / 20;
       const y = Number(id[1]) / 20;
       const index = this.arrPlansza.findIndex(
@@ -338,7 +378,7 @@ class Game {
       );
       if (this.arrPlansza[index])
         bombsArr.push(
-          `${this.arrPlansza[index].row * 20}&${
+          `${this.arrPlansza[index].row * 20}X${
             this.arrPlansza[index].col * 20
           }`
         );
@@ -348,6 +388,7 @@ class Game {
       document.getElementById(bomb).style.backgroundImage =
         "url(./img/bomb.PNG)";
     });
+    this.start = false;
     this.reset("Przegrałeś!");
   }
   checkIsWin() {
@@ -362,36 +403,43 @@ class Game {
     }
 
     if (win && this.pozostaloBomb === 0) {
+      alert("Wygrałeś");
       this.renderNick();
-
-      // this.reset("Wygrałeś!!!");
+      this.start = false;
     }
   }
   renderNick() {
+    clearInterval(this.timerInterval);
+
     const formularz = document.createElement("form");
     const nick = document.createElement("input");
-    const p = document.createElement("p");
-    p.innerText = "Wygrałeś!!!";
     const pN = document.createElement("p");
-    pN.innerText = "Twój nick: ";
-    pN.appendChild(nick);
-    nick.id = "nick";
     const button = document.createElement("button");
+
+    pN.innerText = "Twój nick: ";
+    nick.id = "nick";
     button.id = "submit";
+    formularz.id = "nickForm";
     button.innerText = "Submit";
     button.setAttribute("type", "submit");
+
+    pN.appendChild(nick);
     formularz.appendChild(pN);
-    formularz.id = "nickForm";
     formularz.appendChild(button);
-    formularz.append(p);
     this.main.appendChild(formularz);
     formularz.addEventListener("submit", (e) => {
       e.preventDefault();
       const name = nick.value;
       this.nick = name;
       this.pushToRekordy();
+      if (this.appended) return;
       this.renderRekordy();
-      this.reset("Wygrałeś!!");
+      this.appended = true;
+      const buttonres = document.createElement("button");
+      buttonres.id = "reset";
+      buttonres.innerText = "Reset";
+      document.querySelector("#form").appendChild(buttonres);
+      buttonres.addEventListener("click", (e) => location.reload());
     });
   }
   pushToRekordy() {
@@ -406,11 +454,11 @@ class Game {
     this.createCookie("rekordy", json_str, 2);
   }
   reset(msg) {
-    alert(msg);
+    if (!msg == undefined) alert(msg);
     clearInterval(this.timerInterval);
     setTimeout(() => {
-      this.plansza.remove();
-    }, 3000);
+      location.reload();
+    }, 5000);
   }
   createCookie(name, value, hours) {
     const date = new Date();
@@ -467,7 +515,6 @@ function displayForm() {
   formularz.appendChild(p1);
   formularz.appendChild(p2);
   formularz.appendChild(p3);
-  console.log(main);
   main.appendChild(formularz);
   main.appendChild(czas);
   main.appendChild(liczbaBomb);
@@ -479,54 +526,6 @@ function createEl(name, inner, id, attr, attrVal, appendTo, returnEl) {
   if (inner !== null) element.innerText = inner;
   if (id !== null) element.id = id;
   if (attr !== null && attr !== null) element.setAttribute(attr, attrVal);
-  console.log(appendTo);
   if (appendTo !== null) appendTo.appendChild(element);
   if (returnEl) return element;
 }
-// this.liczbaBombObok = 0;
-// let puste = [];
-// this.allChecked = false;
-
-// const index = this.arrPlansza.findIndex(
-//   (el) => el.row === wiersz && el.col === kolumna
-// );
-// this.kafel = document.getElementById(`k-${index}`);
-
-// for (let i = -1; i < 2; i++) {
-//   for (let j = -1; j < 2; j++) {
-//     let element = this.arrPlansza.find(
-//       (el) => el.row === wiersz + i && el.col === kolumna + j
-//     );
-//     // const indexEl = this.arrPlansza.findIndex(
-//     //   (el) => el.row === wiersz + i && el.col === kolumna + j
-//     // );
-//     if (element && !element.checked) {
-//       if (element.bomb === 1) {
-//         this.liczbaBombObok++;
-//       }
-
-//       if (element.bomb === 0) puste.push(element);
-//     }
-//     if (i == 1 && j == 1) {
-//       this.allChecked = true;
-//     }
-//   }
-// }
-// // this.checkIfAllChecked();
-// let i = 0;
-// while (i < puste.length) {
-//   if (this.liczbaBombObok === 0) {
-//     this.kafel.style.backgroundColor = "darkgrey";
-//     console.log(puste);
-//     this.nearBombs(puste[i].row, puste[i].col);
-//   } else {
-//     this.kafel.innerText = this.liczbaBombObok;
-//   }
-//   i++;
-// }
-
-// if (div_le.style.backgroundImage == 'url("img/flaga.PNG")') {
-//   bombs_left++;
-//   document.getElementById("p_BL").innerText =
-//     "Bombs to defuse left: " + bombs_left + ".";
-// }

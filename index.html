@@ -36,7 +36,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        grid-column: 1/-1;
+        grid-column: 1/3;
         grid-row: 1;
       }
       .boardItem {
@@ -46,8 +46,8 @@
       }
       #nickForm {
         position: absolute;
-        top: 220px;
-        left: 20px;
+        top: 40px;
+        left: 330px;
       }
       #form {
         width: 300px;
@@ -57,19 +57,23 @@
         align-items: center;
         flex-wrap: wrap;
       }
+      .boardFilter {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        grid-column: 3/-1;
+        grid-row: 1;
+      }
+      .essa {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-auto-rows: auto;
+        gap: 5px;
+        grid-column: 1/-1;
+      }
     </style>
   </head>
   <body>
-    <!-- <form id="form">
-            <p>Wysokość: <input type="number" id="height" name="height">
-</p>
-<p>Szerokość: <input type="number" id="width" name="width">
-</p>
-<p>Liczba bomb: <input type="number" id="bombs" name="bombs">
-</p>
-<button type="submit">Generuj</button>
-        </form> -->
-
     <div id="main"></div>
     <script src="./saper1.js" defer></script>
   </body>
