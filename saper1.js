@@ -65,13 +65,13 @@ class Game {
     e.preventDefault();
 
     if (!this.start) {
-      // this.wysokoscPlanszy = Number(document.getElementById("height").value);
-      // this.szerokoscPlanszy = Number(document.getElementById("width").value);
+      this.wysokoscPlanszy = Number(document.getElementById("height").value);
+      this.szerokoscPlanszy = Number(document.getElementById("width").value);
 
-      // this.liczbaBomb = Number(document.getElementById("bombs").value);
-      this.wysokoscPlanszy = 10;
-      this.szerokoscPlanszy = 11;
-      this.liczbaBomb = 1;
+      this.liczbaBomb = Number(document.getElementById("bombs").value);
+      // this.wysokoscPlanszy = 10;
+      // this.szerokoscPlanszy = 11;
+      // this.liczbaBomb = 1;
       console.log(this.wysokoscPlanszy);
       if (
         this.wysokoscPlanszy === 0 ||
@@ -227,26 +227,26 @@ class Game {
     this.div.classList.add("essa");
     this.rekordBoard.appendChild(this.div);
     arr.forEach((rekord, i) => {
-      const div1 = document.createElement("div");
-      const div2 = document.createElement("div");
-      const div3 = document.createElement("div");
-      div1.empty;
-      div1.classList.add("boardItem");
-      div2.classList.add("boardItem");
-      div3.classList.add("boardItem");
-      div1.style.gridColumn = 1;
-      div2.style.gridColumn = 2;
-      div3.style.gridColumn = 3;
-      div1.style.gridRow = i + 2;
-      div2.style.gridRow = i + 2;
-      div3.style.gridRow = i + 2;
-      div1.innerText = rekord.name;
-      div2.innerText = rekord.time;
       const wymiary = `${rekord.wysokoscPlanszy}X${rekord.szerokoscPlanszy}`;
-      div3.innerText = wymiary;
-      this.div.appendChild(div1);
-      this.div.appendChild(div2);
-      this.div.appendChild(div3);
+
+      for (let index = 0; index < 3; index++) {
+        const div1 = document.createElement("div");
+        div1.classList.add("boardItem");
+        div1.style.gridColumn = index + 1;
+        div1.style.gridRow = i + 2;
+        switch (index) {
+          case 0:
+            div1.innerText = rekord.name;
+            break;
+          case 1:
+            div1.innerText = `czas: ${rekord.time}`;
+            break;
+          case 2:
+            div1.innerText = wymiary;
+            break;
+        }
+        this.div.appendChild(div1);
+      }
     });
   }
   nearBombs(kafel) {
@@ -427,14 +427,16 @@ class Game {
     formularz.appendChild(pN);
     formularz.appendChild(button);
     this.main.appendChild(formularz);
+
     formularz.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (this.appended) return;
       const name = nick.value;
       this.nick = name;
       this.pushToRekordy();
-      if (this.appended) return;
       this.renderRekordy();
       this.appended = true;
+
       const buttonres = document.createElement("button");
       buttonres.id = "reset";
       buttonres.innerText = "Reset";
