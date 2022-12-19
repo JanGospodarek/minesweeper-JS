@@ -287,30 +287,22 @@ class Game {
       }
     }
 
-    for (let i = 0; i < bezpieczne.length; i++) {
+    bezpieczne.forEach((bezpEl) => {
       let breaker = true;
-
       bombArr.forEach(function (el) {
         if (breaker) {
-          if (
-            el.row * 20 == bezpieczne[i].row &&
-            el.col * 20 == bezpieczne[i].col
-          ) {
+          if (el.row * 20 == bezpEl.row && el.col * 20 == bezpEl.col) {
             a++;
             breaker = false;
           }
         }
       });
-    }
-
-    for (let i = 0; i < bezpieczne.length; i++) {
+    });
+    bezpieczne.forEach((el) => {
       if (!checking(document.getElementById(`${x}X${y}`).id) && a == 0) {
-        this.nearBombs(
-          document.getElementById(`${bezpieczne[i].row}X${bezpieczne[i].col}`)
-        );
+        this.nearBombs(document.getElementById(`${el.row}X${el.col}`));
       }
-    }
-
+    });
     kafel.style.backgroundImage = null;
     kafel.style.backgroundColor = "lightgray";
     if (a != 0) kafel.innerText = a;
