@@ -251,6 +251,11 @@ class Game {
   }
   nearBombs(kafel) {
     const bombArr = this.arrPlansza.filter((el) => el.bomb === 1);
+    let a = 0;
+
+    const tab_cords = kafel.id.split("X");
+    const x = parseInt(tab_cords[0]);
+    const y = parseInt(tab_cords[1]);
 
     function checking(ID) {
       for (let i = 0; i < bombArr.length; i++) {
@@ -264,11 +269,6 @@ class Game {
       return false;
     }
 
-    let a = 0;
-
-    const tab_cords = kafel.id.split("X");
-    const x = parseInt(tab_cords[0]);
-    const y = parseInt(tab_cords[1]);
     const id = kafel.getAttribute("dataID").split("-")[1];
     kafel.classList.remove("NO");
     kafel.classList.add("YES");
@@ -288,16 +288,16 @@ class Game {
     }
 
     for (let i = 0; i < bezpieczne.length; i++) {
-      let hasFlag = true;
+      let breaker = true;
 
-      bombArr.forEach(function (object) {
-        if (hasFlag) {
+      bombArr.forEach(function (el) {
+        if (breaker) {
           if (
-            object.row * 20 == bezpieczne[i].row &&
-            object.col * 20 == bezpieczne[i].col
+            el.row * 20 == bezpieczne[i].row &&
+            el.col * 20 == bezpieczne[i].col
           ) {
             a++;
-            hasFlag = false;
+            breaker = false;
           }
         }
       });
@@ -305,15 +305,16 @@ class Game {
 
     for (let i = 0; i < bezpieczne.length; i++) {
       if (!checking(document.getElementById(`${x}X${y}`).id) && a == 0) {
-        const thisBInder = this;
-        thisBInder.nearBombs(
+        this.nearBombs(
           document.getElementById(`${bezpieczne[i].row}X${bezpieczne[i].col}`)
         );
       }
     }
+
     kafel.style.backgroundImage = null;
     kafel.style.backgroundColor = "lightgray";
     if (a != 0) kafel.innerText = a;
+
     this.checkIsWin();
   }
 
